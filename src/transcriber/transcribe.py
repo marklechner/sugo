@@ -51,6 +51,19 @@ def load_model(model_size: str) -> WhisperModel:
     return WhisperModel(model_size, device="cpu", compute_type="int8")
 
 
+def reload_model(model_size: str) -> WhisperModel:
+    """Clear model cache and load a specific model.
+
+    Args:
+        model_size: Model size string to load.
+
+    Returns:
+        Loaded WhisperModel instance.
+    """
+    load_model.cache_clear()
+    return load_model(model_size)
+
+
 def transcribe_audio(
     file_path: str,
     language: str = "hu",

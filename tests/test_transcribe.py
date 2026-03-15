@@ -92,3 +92,32 @@ class TestTranscribeAudio:
         segments = list(transcribe_audio("/fake/path.m4a", language="hu"))
 
         assert segments[0]["duration"] == 60.0
+
+
+class TestReloadModel:
+    """Test model reloading clears cache and loads new model."""
+
+    @patch("transcriber.transcribe.WhisperModel")
+    def test_reload_clears_cache_and_loads(self, mock_cls):
+        mock_cls.return_value = MagicMock()
+        load_model.cache_clear()
+
+        # Load medium first
+        load_model("medium")
+        assert mock_cls.call_count == 1
+
+        # Reload with large-v3
+        from transcriber.transcribe import reload_model
+        reload_model("large-v3")
+
+        # cache_clear was called (medium gone), large-v3 loaded
+        assert mock_cls.call_count >= 2
+        mock_cls.assert_called_with("large-v3", device="cpu", compute_type="int8")
+
+    @patch("transcriber.transcribe.WhisperModel")
+    def test_reload_returns_model(self, mock_cls):
+        mock_instance = MagicMock()
+        mock_cls.return_value = mock_instance
+        from transcriber.transcribe import reload_model
+        result = reload_model("medium")
+        assert result is mock_instance
