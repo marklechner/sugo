@@ -31,3 +31,8 @@ echo ""
 
 # Run the app via uv (auto-creates venv and installs deps on first run)
 uv run python -m transcriber.app
+
+# This runs after the server exits (quit button or clean shutdown)
+echo ""
+echo "  Súgó stopped. You can close this window."
+echo ""
