@@ -1,46 +1,67 @@
-# Súgó Transcriber
+# Súgó 🐱
 
-Local, privacy-first audio transcription tool powered by Whisper.
+Local, privacy-first audio transcription powered by Whisper
 
-## Overview
+Record on your iPhone, AirDrop to your Mac, and transcribe instantly — no internet required. Súgó runs the AI model entirely on your machine and copies the transcript to your clipboard so you can paste it straight into ChatGPT or anywhere else.
 
-Súgó is a privacy-focused transcription tool that runs entirely on your machine using OpenAI's Whisper model via faster-whisper.
+---
+
+## Quick Start
+
+**Prerequisites:** macOS with Apple Silicon (M1/M2/M3/M4). No other setup needed.
+
+```bash
+git clone https://github.com/yourusername/transcriber.git
+cd transcriber
+```
+
+Then double-click `start.command`, or run:
+
+```bash
+uv run python -m transcriber.app
+```
+
+The first launch downloads the Whisper AI model (~1.5 GB, one-time only).
+
+> **Downloaded as a ZIP from GitHub?** Run `chmod +x start.command` once before double-clicking.
+
+---
+
+## How It Works
+
+```
+Voice Memos → AirDrop → Súgó → Copy → ChatGPT
+```
+
+1. Record a voice memo on your iPhone
+2. AirDrop the `.m4a` file to your Mac
+3. Drop it into Súgó (or pick it from the file picker)
+4. Click Copy and paste your transcript anywhere
+
+---
 
 ## Features
 
-- Local processing - no cloud uploads
-- FastAPI-based web interface
-- Real-time transcription status via Server-Sent Events
-- Support for multiple audio formats
+- Hungarian and English UI
+- Transcription in 99 languages
+- Dark theme
+- Drag-and-drop support
+- Supported formats: `.m4a`, `.mp3`, `.wav`, `.ogg`, `.flac`, `.webm`
 
-## Getting Started
+---
 
-### Installation
+## Privacy
 
-```bash
-uv sync
-```
+All processing happens locally on your machine. No audio, no text, and no metadata ever leaves your Mac. There are no cloud APIs, no accounts, and no telemetry.
 
-### Running the Application
+---
 
-```bash
-uv run uvicorn transcriber.app:app --reload
-```
+## Contributing
 
-## Development
+PRs are welcome. Open an issue first for larger changes.
 
-Install development dependencies:
-
-```bash
-uv sync --dev
-```
-
-Run tests:
-
-```bash
-uv run pytest
-```
+---
 
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE)
