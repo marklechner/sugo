@@ -430,6 +430,104 @@ main {
   background: #444;
 }
 
+/* Settings panel */
+.settings-wrapper {
+  position: relative;
+}
+
+.settings-btn {
+  background: transparent;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  font-size: 18px;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  line-height: 1;
+}
+
+.settings-btn:hover {
+  border-color: #444;
+}
+
+.settings-panel {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 16px;
+  min-width: 240px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  z-index: 100;
+}
+
+.settings-panel.open {
+  display: block;
+}
+
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-label {
+  font-size: 12px;
+  color: #888;
+  font-weight: 600;
+}
+
+.settings-select {
+  background: #111;
+  color: #e0e0e0;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 24px;
+  width: 100%;
+}
+
+.settings-select:hover,
+.settings-select:focus {
+  border-color: #6366f1;
+}
+
+.settings-divider {
+  height: 1px;
+  background: #2a2a2a;
+  margin: 12px 0;
+}
+
+.quit-btn {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 4px 0;
+  text-align: left;
+  width: 100%;
+  transition: opacity 0.2s;
+}
+
+.quit-btn:hover {
+  opacity: 0.8;
+}
+
 /* Focus */
 :focus-visible {
   outline: 2px solid #6366f1;
@@ -440,6 +538,21 @@ main {
 <body>
 
 <header>
+  <div class="settings-wrapper">
+    <button class="settings-btn" id="settingsBtn" title="Settings" aria-label="Settings">⚙️</button>
+    <div class="settings-panel" id="settingsPanel">
+      <div class="settings-group">
+        <label class="settings-label" data-i18n="model_size_label">Modell méret</label>
+        <select id="modelSizeSelect" class="settings-select">
+          <option value="auto" data-i18n="model_auto">Auto (ajánlott)</option>
+          <option value="medium" data-i18n="model_medium">Medium — gyorsabb</option>
+          <option value="large-v3" data-i18n="model_large">Large-v3 — pontosabb</option>
+        </select>
+      </div>
+      <div class="settings-divider"></div>
+      <button class="quit-btn" id="quitBtn" data-i18n="quit_btn">Kilépés</button>
+    </div>
+  </div>
   <div class="whisper-lang">
     <label data-i18n="whisper_lang">Beszed nyelve</label>
     <select id="whisperLang">
@@ -541,7 +654,16 @@ const i18n = {
     error_model: "A modell let\u00f6lt\u00e9se sikertelen. Ellen\u0151rizd az internetkapcsolatot.",
     model_loading: "A modell let\u00f6lt\u00e9se folyamatban... (ez csak egyszer sz\u00fcks\u00e9ges)",
     retry_btn: "Pr\u00f3b\u00e1ld \u00fajra",
-    whisper_lang: "Besz\u00e9d nyelve"
+    whisper_lang: "Besz\u00e9d nyelve",
+    settings_btn: "Be\u00e1ll\u00edt\u00e1sok",
+    model_size_label: "Modell m\u00e9ret",
+    model_auto: "Auto (aj\u00e1nlott)",
+    model_medium: "Medium \u2014 gyorsabb",
+    model_large: "Large-v3 \u2014 pontosabb",
+    model_switching: "Modell v\u00e1lt\u00e1s...",
+    quit_btn: "Kil\u00e9p\u00e9s",
+    shutting_down: "S\u00fag\u00f3 le\u00e1ll...",
+    safe_to_close: "Bez\u00e1rhatod ezt az ablakot."
   },
   en: {
     subtitle: "Local audio transcriber",
@@ -557,7 +679,16 @@ const i18n = {
     error_model: "Model download failed. Check your internet connection.",
     model_loading: "Downloading model... (one-time only)",
     retry_btn: "Retry",
-    whisper_lang: "Speech language"
+    whisper_lang: "Speech language",
+    settings_btn: "Settings",
+    model_size_label: "Model size",
+    model_auto: "Auto (recommended)",
+    model_medium: "Medium \u2014 faster",
+    model_large: "Large-v3 \u2014 more accurate",
+    model_switching: "Switching model...",
+    quit_btn: "Quit",
+    shutting_down: "S\u00fag\u00f3 shutting down...",
+    safe_to_close: "You can close this window."
   }
 };
 
@@ -593,13 +724,22 @@ function setState(state) {
   document.getElementById("stateProcessing").classList.toggle("visible", state === "processing");
   document.getElementById("stateComplete").classList.toggle("visible", state === "complete");
   document.getElementById("stateError").classList.toggle("visible", state === "error");
+  const quitBtn = document.getElementById("quitBtn");
+  quitBtn.disabled = (state === "processing");
+  quitBtn.style.opacity = (state === "processing") ? "0.3" : "1";
 }
 
 /* ── Model preloading ────────────────────────────── */
 async function loadModel() {
   setState("loading");
   try {
-    const res = await fetch("/api/load-model", { method: "POST" });
+    const savedSize = localStorage.getItem("sugo_model_size") || "auto";
+    const fetchOpts = { method: "POST" };
+    if (savedSize !== "auto") {
+      fetchOpts.headers = { "Content-Type": "application/json" };
+      fetchOpts.body = JSON.stringify({ model_size: savedSize });
+    }
+    const res = await fetch("/api/load-model", fetchOpts);
     const data = await res.json();
     if (res.ok && data.status === "ready") {
       setState("ready");
@@ -685,6 +825,10 @@ async function startTranscription() {
   const formData = new FormData();
   formData.append("file", selectedFile);
   formData.append("language", document.getElementById("whisperLang").value);
+  const savedSize = localStorage.getItem("sugo_model_size") || "auto";
+  if (savedSize !== "auto") {
+    formData.append("model_size", savedSize);
+  }
 
   try {
     const res = await fetch("/api/transcribe", {
@@ -826,6 +970,62 @@ async function copyResult() {
     }, 2000);
   }
 }
+
+/* ── Settings panel ──────────────────────────────── */
+const settingsBtn = document.getElementById("settingsBtn");
+const settingsPanel = document.getElementById("settingsPanel");
+const modelSizeSelect = document.getElementById("modelSizeSelect");
+const quitBtnEl = document.getElementById("quitBtn");
+
+// Toggle panel
+settingsBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  settingsPanel.classList.toggle("open");
+});
+
+// Close on outside click
+document.addEventListener("click", (e) => {
+  if (!settingsPanel.contains(e.target) && e.target !== settingsBtn) {
+    settingsPanel.classList.remove("open");
+  }
+});
+
+// Restore saved model size
+const savedModelSize = localStorage.getItem("sugo_model_size") || "auto";
+modelSizeSelect.value = savedModelSize;
+
+// Model size change
+modelSizeSelect.addEventListener("change", async () => {
+  const value = modelSizeSelect.value;
+  localStorage.setItem("sugo_model_size", value);
+  settingsBtn.textContent = "\u231B";
+  try {
+    const fetchOpts = { method: "POST" };
+    if (value !== "auto") {
+      fetchOpts.headers = { "Content-Type": "application/json" };
+      fetchOpts.body = JSON.stringify({ model_size: value });
+    }
+    await fetch("/api/load-model", fetchOpts);
+  } catch (e) {
+    // ignore
+  }
+  settingsBtn.textContent = "\u2699\uFE0F";
+});
+
+// Quit handler
+quitBtnEl.addEventListener("click", async () => {
+  settingsPanel.classList.remove("open");
+  const mainEl = document.querySelector("main");
+  mainEl.innerHTML = '<div style="text-align:center;padding:64px 0;"><p style="font-size:18px;color:#e0e0e0;" data-i18n="shutting_down">' + i18n[currentLang].shutting_down + '</p></div>';
+  try {
+    await fetch("/api/shutdown", { method: "POST" });
+  } catch (e) {
+    // expected — server shuts down
+  }
+  setTimeout(() => {
+    mainEl.innerHTML = '<div style="text-align:center;padding:64px 0;"><p style="font-size:18px;color:#888;" data-i18n="safe_to_close">' + i18n[currentLang].safe_to_close + '</p></div>';
+  }, 1000);
+});
 
 /* ── Init ────────────────────────────────────────── */
 setLang(currentLang);
