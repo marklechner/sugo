@@ -1,2 +1,818 @@
 <!DOCTYPE html>
-<html><head><title>Súgó</title></head><body><h1>Súgó</h1></body></html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S&#250;g&#243;</title>
+<style>
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #0a0a0a;
+  color: #e0e0e0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+header {
+  width: 100%;
+  max-width: 640px;
+  padding: 24px 24px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.lang-toggle {
+  display: flex;
+  background: #1a1a1a;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid #2a2a2a;
+}
+
+.lang-toggle button {
+  background: transparent;
+  border: none;
+  color: #888;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.5px;
+}
+
+.lang-toggle button.active {
+  background: #6366f1;
+  color: #fff;
+}
+
+.lang-toggle button:hover:not(.active) {
+  color: #ccc;
+}
+
+.whisper-lang {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.whisper-lang label {
+  font-size: 12px;
+  color: #666;
+  white-space: nowrap;
+}
+
+.whisper-lang select {
+  background: #1a1a1a;
+  color: #e0e0e0;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 24px;
+}
+
+.whisper-lang select:hover,
+.whisper-lang select:focus {
+  border-color: #6366f1;
+}
+
+main {
+  width: 100%;
+  max-width: 640px;
+  padding: 24px;
+  flex: 1;
+}
+
+.hero {
+  text-align: center;
+  padding: 48px 0 32px;
+}
+
+.hero .mascot {
+  font-size: 64px;
+  line-height: 1;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.hero h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+
+.hero .subtitle {
+  font-size: 16px;
+  color: #888;
+}
+
+/* State 0: Model loading */
+.state-loading {
+  display: none;
+  text-align: center;
+  padding: 48px 0;
+}
+
+.state-loading.visible {
+  display: block;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #2a2a2a;
+  border-top-color: #6366f1;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.state-loading p {
+  color: #888;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* State 1: Dropzone */
+.state-ready {
+  display: none;
+}
+
+.state-ready.visible {
+  display: block;
+}
+
+.dropzone {
+  border: 2px dashed #2a2a2a;
+  border-radius: 16px;
+  padding: 64px 32px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  background: #111;
+  position: relative;
+}
+
+.dropzone:hover,
+.dropzone.dragover {
+  border-color: #6366f1;
+  background: #13111f;
+}
+
+.dropzone.dragover {
+  transform: scale(1.01);
+}
+
+.dropzone-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  display: block;
+  opacity: 0.6;
+}
+
+.dropzone-text {
+  font-size: 17px;
+  color: #aaa;
+  margin-bottom: 8px;
+}
+
+.dropzone-hint {
+  font-size: 13px;
+  color: #555;
+}
+
+.file-input {
+  display: none;
+}
+
+.file-selected {
+  display: none;
+  margin-top: 24px;
+  text-align: center;
+}
+
+.file-selected.visible {
+  display: block;
+}
+
+.file-name {
+  font-size: 14px;
+  color: #aaa;
+  margin-bottom: 16px;
+  word-break: break-all;
+  background: #1a1a1a;
+  padding: 10px 16px;
+  border-radius: 8px;
+  display: inline-block;
+}
+
+.file-name::before {
+  content: "\1F3B5 ";
+}
+
+.btn-primary {
+  background: #6366f1;
+  color: #fff;
+  border: none;
+  padding: 14px 40px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.btn-primary:hover {
+  background: #5558e6;
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* State 2: Processing */
+.state-processing {
+  display: none;
+  text-align: center;
+  padding: 32px 0;
+}
+
+.state-processing.visible {
+  display: block;
+}
+
+.processing-status {
+  margin-bottom: 8px;
+  font-size: 15px;
+  color: #aaa;
+}
+
+.elapsed {
+  font-size: 28px;
+  font-weight: 700;
+  color: #6366f1;
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 24px;
+}
+
+.streaming-output {
+  text-align: left;
+  background: #111;
+  border: 1px solid #1e1e1e;
+  border-radius: 12px;
+  padding: 20px;
+  min-height: 120px;
+  max-height: 400px;
+  overflow-y: auto;
+  font-family: "SF Mono", "Fira Code", "Fira Mono", Menlo, monospace;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #ccc;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.streaming-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 16px;
+  background: #6366f1;
+  animation: blink 1s step-end infinite;
+  vertical-align: text-bottom;
+  margin-left: 2px;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+/* State 3: Result */
+.state-complete {
+  display: none;
+  padding: 32px 0;
+}
+
+.state-complete.visible {
+  display: block;
+}
+
+.result-output {
+  background: #111;
+  border: 1px solid #1e1e1e;
+  border-radius: 12px;
+  padding: 20px;
+  min-height: 120px;
+  max-height: 500px;
+  overflow-y: auto;
+  font-family: "SF Mono", "Fira Code", "Fira Mono", Menlo, monospace;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #e0e0e0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin-bottom: 20px;
+}
+
+.result-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.btn-secondary {
+  background: #1a1a1a;
+  color: #e0e0e0;
+  border: 1px solid #2a2a2a;
+  padding: 12px 28px;
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.btn-secondary:hover {
+  background: #222;
+  border-color: #444;
+}
+
+.btn-copy.copied {
+  border-color: #22c55e;
+  color: #22c55e;
+}
+
+/* Error state */
+.state-error {
+  display: none;
+  text-align: center;
+  padding: 48px 0;
+}
+
+.state-error.visible {
+  display: block;
+}
+
+.error-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.error-message {
+  font-size: 15px;
+  color: #f87171;
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+
+.btn-retry {
+  background: transparent;
+  color: #f87171;
+  border: 1px solid #f87171;
+  padding: 12px 28px;
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.btn-retry:hover {
+  background: #f871711a;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #444;
+}
+
+/* Focus */
+:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="whisper-lang">
+    <label data-i18n="whisper_lang">Beszed nyelve</label>
+    <select id="whisperLang">
+      <option value="hu">Magyar</option>
+      <option value="en">English</option>
+      <option value="de">Deutsch</option>
+      <option value="fr">Francais</option>
+      <option value="es">Espanol</option>
+      <option value="it">Italiano</option>
+      <option value="ro">Romana</option>
+      <option value="sk">Slovencina</option>
+      <option value="hr">Hrvatski</option>
+      <option value="sr">Srpski</option>
+      <option value="uk">Ukrainska</option>
+      <option value="pl">Polski</option>
+      <option value="cs">Cestina</option>
+      <option value="nl">Nederlands</option>
+      <option value="pt">Portugues</option>
+      <option value="ru">Russkiy</option>
+      <option value="zh">Zhongwen</option>
+      <option value="ja">Nihongo</option>
+      <option value="ko">Hangugeo</option>
+      <option value="ar">Arabiyya</option>
+    </select>
+  </div>
+  <div class="lang-toggle">
+    <button id="btnHU" class="active" onclick="setLang('hu')">HU</button>
+    <button id="btnEN" onclick="setLang('en')">EN</button>
+  </div>
+</header>
+
+<main>
+  <div class="hero">
+    <span class="mascot">&#128049;</span>
+    <h1>S&#250;g&#243;</h1>
+    <p class="subtitle" data-i18n="subtitle">Helyi hangativo</p>
+  </div>
+
+  <!-- State 0: Model loading -->
+  <div class="state-loading" id="stateLoading">
+    <div class="spinner"></div>
+    <p data-i18n="model_loading">A modell letoltese folyamatban... (ez csak egyszer szukseges)</p>
+  </div>
+
+  <!-- State 1: Ready / Dropzone -->
+  <div class="state-ready" id="stateReady">
+    <div class="dropzone" id="dropzone">
+      <span class="dropzone-icon">&#127911;</span>
+      <p class="dropzone-text" data-i18n="dropzone_text">Huzd ide a hangfajlt vagy kattints</p>
+      <p class="dropzone-hint">.m4a, .mp3, .wav, .ogg, .flac, .webm</p>
+    </div>
+    <input type="file" class="file-input" id="fileInput" accept=".m4a,.mp3,.wav,.ogg,.flac,.webm">
+    <div class="file-selected" id="fileSelected">
+      <div class="file-name" id="fileName"></div>
+      <br>
+      <button class="btn-primary" id="btnTranscribe" data-i18n="transcribe_btn" onclick="startTranscription()">Atiras</button>
+    </div>
+  </div>
+
+  <!-- State 2: Processing -->
+  <div class="state-processing" id="stateProcessing">
+    <div class="spinner"></div>
+    <p class="processing-status" data-i18n="processing">Atiras folyamatban...</p>
+    <div class="elapsed"><span data-i18n="elapsed">Eltelt ido</span>: <span id="elapsedTime">00:00</span></div>
+    <div class="streaming-output" id="streamingOutput"><span class="streaming-cursor"></span></div>
+  </div>
+
+  <!-- State 3: Complete -->
+  <div class="state-complete" id="stateComplete">
+    <div class="result-output" id="resultOutput"></div>
+    <div class="result-actions">
+      <button class="btn-secondary btn-copy" id="btnCopy" data-i18n="copy_btn" onclick="copyResult()">Masolas</button>
+      <button class="btn-primary" id="btnNew" data-i18n="new_btn" onclick="resetToReady()">Uj atiras</button>
+    </div>
+  </div>
+
+  <!-- Error state -->
+  <div class="state-error" id="stateError">
+    <span class="error-icon">&#9888;&#65039;</span>
+    <p class="error-message" id="errorMessage"></p>
+    <button class="btn-retry" id="btnRetry" data-i18n="retry_btn" onclick="retry()">Probald ujra</button>
+  </div>
+</main>
+
+<script>
+/* ── i18n ─────────────────────────────────────────── */
+const i18n = {
+  hu: {
+    subtitle: "Helyi hang\u00e1t\u00edr\u00f3",
+    dropzone_text: "H\u00fazd ide a hangf\u00e1jlt vagy kattints",
+    transcribe_btn: "\u00c1t\u00edr\u00e1s",
+    copy_btn: "M\u00e1sol\u00e1s",
+    copied: "M\u00e1solva!",
+    new_btn: "\u00daj \u00e1t\u00edr\u00e1s",
+    processing: "\u00c1t\u00edr\u00e1s folyamatban...",
+    elapsed: "Eltelt id\u0151",
+    error_format: "Nem t\u00e1mogatott form\u00e1tum",
+    error_generic: "Hiba t\u00f6rt\u00e9nt. Pr\u00f3b\u00e1ld \u00fajra.",
+    error_model: "A modell let\u00f6lt\u00e9se sikertelen. Ellen\u0151rizd az internetkapcsolatot.",
+    model_loading: "A modell let\u00f6lt\u00e9se folyamatban... (ez csak egyszer sz\u00fcks\u00e9ges)",
+    retry_btn: "Pr\u00f3b\u00e1ld \u00fajra",
+    whisper_lang: "Besz\u00e9d nyelve"
+  },
+  en: {
+    subtitle: "Local audio transcriber",
+    dropzone_text: "Drop audio file here or click",
+    transcribe_btn: "Transcribe",
+    copy_btn: "Copy",
+    copied: "Copied!",
+    new_btn: "New transcription",
+    processing: "Transcribing...",
+    elapsed: "Elapsed",
+    error_format: "Unsupported format",
+    error_generic: "An error occurred. Try again.",
+    error_model: "Model download failed. Check your internet connection.",
+    model_loading: "Downloading model... (one-time only)",
+    retry_btn: "Retry",
+    whisper_lang: "Speech language"
+  }
+};
+
+let currentLang = localStorage.getItem("sugo_lang") || "hu";
+let currentState = "loading"; // loading | ready | processing | complete | error
+let selectedFile = null;
+let elapsedInterval = null;
+let transcriptionText = "";
+let lastErrorContext = "generic"; // "generic" | "model" | "format"
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem("sugo_lang", lang);
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.getAttribute("data-i18n");
+    if (i18n[lang][key]) {
+      el.textContent = i18n[lang][key];
+    }
+  });
+  document.getElementById("btnHU").classList.toggle("active", lang === "hu");
+  document.getElementById("btnEN").classList.toggle("active", lang === "en");
+  // Re-apply elapsed time label if processing
+  if (currentState === "processing") {
+    updateElapsedDisplay();
+  }
+}
+
+/* ── State management ────────────────────────────── */
+function setState(state) {
+  currentState = state;
+  document.getElementById("stateLoading").classList.toggle("visible", state === "loading");
+  document.getElementById("stateReady").classList.toggle("visible", state === "ready");
+  document.getElementById("stateProcessing").classList.toggle("visible", state === "processing");
+  document.getElementById("stateComplete").classList.toggle("visible", state === "complete");
+  document.getElementById("stateError").classList.toggle("visible", state === "error");
+}
+
+/* ── Model preloading ────────────────────────────── */
+async function loadModel() {
+  setState("loading");
+  try {
+    const res = await fetch("/api/load-model", { method: "POST" });
+    const data = await res.json();
+    if (res.ok && data.status === "ready") {
+      setState("ready");
+    } else {
+      lastErrorContext = "model";
+      showError(i18n[currentLang].error_model);
+    }
+  } catch (e) {
+    lastErrorContext = "model";
+    showError(i18n[currentLang].error_model);
+  }
+}
+
+function showError(message) {
+  document.getElementById("errorMessage").textContent = message;
+  setState("error");
+}
+
+function retry() {
+  if (lastErrorContext === "model") {
+    loadModel();
+  } else {
+    resetToReady();
+  }
+}
+
+/* ── Drag & drop + file select ───────────────────── */
+const dropzone = document.getElementById("dropzone");
+const fileInput = document.getElementById("fileInput");
+
+dropzone.addEventListener("click", () => fileInput.click());
+
+dropzone.addEventListener("dragover", e => {
+  e.preventDefault();
+  dropzone.classList.add("dragover");
+});
+
+dropzone.addEventListener("dragleave", e => {
+  e.preventDefault();
+  dropzone.classList.remove("dragover");
+});
+
+dropzone.addEventListener("drop", e => {
+  e.preventDefault();
+  dropzone.classList.remove("dragover");
+  if (e.dataTransfer.files.length > 0) {
+    handleFile(e.dataTransfer.files[0]);
+  }
+});
+
+fileInput.addEventListener("change", () => {
+  if (fileInput.files.length > 0) {
+    handleFile(fileInput.files[0]);
+  }
+});
+
+function handleFile(file) {
+  const ext = file.name.substring(file.name.lastIndexOf(".")).toLowerCase();
+  const allowed = [".m4a", ".mp3", ".wav", ".ogg", ".flac", ".webm"];
+  if (!allowed.includes(ext)) {
+    lastErrorContext = "format";
+    showError(i18n[currentLang].error_format);
+    return;
+  }
+  selectedFile = file;
+  document.getElementById("fileName").textContent = file.name;
+  document.getElementById("fileSelected").classList.add("visible");
+}
+
+/* ── Transcription ───────────────────────────────── */
+async function startTranscription() {
+  if (!selectedFile) return;
+
+  transcriptionText = "";
+  const streamOut = document.getElementById("streamingOutput");
+  streamOut.innerHTML = '<span class="streaming-cursor"></span>';
+
+  setState("processing");
+  startTimer();
+
+  const formData = new FormData();
+  formData.append("file", selectedFile);
+  formData.append("language", document.getElementById("whisperLang").value);
+
+  try {
+    const res = await fetch("/api/transcribe", {
+      method: "POST",
+      body: formData
+    });
+
+    if (!res.ok) {
+      stopTimer();
+      lastErrorContext = "generic";
+      showError(i18n[currentLang].error_generic);
+      return;
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop(); // keep incomplete line in buffer
+
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        const jsonStr = line.slice(6);
+        try {
+          const data = JSON.parse(jsonStr);
+          if (data.error) {
+            stopTimer();
+            lastErrorContext = "generic";
+            showError(data.error);
+            return;
+          }
+          if (data.done) {
+            stopTimer();
+            finishTranscription();
+            return;
+          }
+          if (data.text != null) {
+            transcriptionText += data.text;
+            // Update streaming output
+            const cursor = streamOut.querySelector(".streaming-cursor");
+            const textNode = document.createTextNode(data.text);
+            streamOut.insertBefore(textNode, cursor);
+            streamOut.scrollTop = streamOut.scrollHeight;
+          }
+        } catch (parseErr) {
+          // skip malformed JSON
+        }
+      }
+    }
+
+    // If we exit the loop without done signal, still finish
+    if (transcriptionText.length > 0) {
+      stopTimer();
+      finishTranscription();
+    }
+  } catch (e) {
+    stopTimer();
+    lastErrorContext = "generic";
+    showError(i18n[currentLang].error_generic);
+  }
+}
+
+function finishTranscription() {
+  document.getElementById("resultOutput").textContent = transcriptionText.trim();
+  setState("complete");
+}
+
+function resetToReady() {
+  selectedFile = null;
+  fileInput.value = "";
+  transcriptionText = "";
+  document.getElementById("fileSelected").classList.remove("visible");
+  document.getElementById("streamingOutput").innerHTML = '<span class="streaming-cursor"></span>';
+  document.getElementById("resultOutput").textContent = "";
+  document.getElementById("btnCopy").classList.remove("copied");
+  document.getElementById("btnCopy").textContent = i18n[currentLang].copy_btn;
+  setState("ready");
+}
+
+/* ── Timer ───────────────────────────────────────── */
+let elapsedSeconds = 0;
+
+function startTimer() {
+  elapsedSeconds = 0;
+  updateElapsedDisplay();
+  elapsedInterval = setInterval(() => {
+    elapsedSeconds++;
+    updateElapsedDisplay();
+  }, 1000);
+}
+
+function updateElapsedDisplay() {
+  const m = String(Math.floor(elapsedSeconds / 60)).padStart(2, "0");
+  const s = String(elapsedSeconds % 60).padStart(2, "0");
+  document.getElementById("elapsedTime").textContent = m + ":" + s;
+}
+
+function stopTimer() {
+  if (elapsedInterval) {
+    clearInterval(elapsedInterval);
+    elapsedInterval = null;
+  }
+}
+
+/* ── Copy ────────────────────────────────────────── */
+async function copyResult() {
+  const text = document.getElementById("resultOutput").textContent;
+  try {
+    await navigator.clipboard.writeText(text);
+    const btn = document.getElementById("btnCopy");
+    btn.textContent = i18n[currentLang].copied;
+    btn.classList.add("copied");
+    setTimeout(() => {
+      btn.textContent = i18n[currentLang].copy_btn;
+      btn.classList.remove("copied");
+    }, 2000);
+  } catch (e) {
+    // fallback: do nothing
+  }
+}
+
+/* ── Init ────────────────────────────────────────── */
+setLang(currentLang);
+loadModel();
+</script>
+</body>
+</html>
