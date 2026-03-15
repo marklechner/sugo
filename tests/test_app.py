@@ -128,3 +128,71 @@ class TestTranscribeErrorHandling:
             if line.startswith("data: "):
                 events.append(json.loads(line[6:]))
         assert any("error" in e for e in events)
+
+
+class TestLoadModelWithSize:
+    @patch("transcriber.app.reload_model")
+    @patch("transcriber.app.get_model_size")
+    def test_load_model_with_explicit_size(self, mock_size, mock_reload, client):
+        mock_reload.return_value = MagicMock()
+        response = client.post(
+            "/api/load-model",
+            json={"model_size": "large-v3"},
+        )
+        assert response.status_code == 200
+        assert response.json()["status"] == "ready"
+        assert response.json()["model_size"] == "large-v3"
+        mock_reload.assert_called_once_with("large-v3")
+
+    @patch("transcriber.app.load_model")
+    @patch("transcriber.app.get_model_size")
+    def test_load_model_without_body_still_works(self, mock_size, mock_load, client):
+        """Existing no-body call must continue to work."""
+        mock_size.return_value = "medium"
+        mock_load.return_value = MagicMock()
+        response = client.post("/api/load-model")
+        assert response.status_code == 200
+        assert response.json()["status"] == "ready"
+
+
+class TestTranscribeWithModelSize:
+    @patch("transcriber.app.transcribe_audio")
+    def test_transcribe_passes_model_size(self, mock_transcribe, client):
+        mock_transcribe.return_value = iter([
+            {"text": "Test", "start": 0.0, "end": 1.0, "duration": 1.0},
+        ])
+
+        response = client.post(
+            "/api/transcribe",
+            files={"file": ("test.m4a", io.BytesIO(b"fake"), "audio/mp4")},
+            data={"language": "hu", "model_size": "large-v3"},
+        )
+
+        assert response.status_code == 200
+        call_args = mock_transcribe.call_args
+        assert call_args[1].get("model_size") == "large-v3" or (len(call_args[0]) > 2 and call_args[0][2] == "large-v3")
+
+
+class TestShutdownEndpoint:
+    @patch("transcriber.app.threading")
+    def test_shutdown_returns_status(self, mock_threading, client):
+        response = client.post("/api/shutdown")
+        assert response.status_code == 200
+        assert response.json()["status"] == "shutting_down"
+
+    @patch("transcriber.app.threading")
+    def test_shutdown_schedules_exit(self, mock_threading, client):
+        client.post("/api/shutdown")
+        mock_threading.Timer.assert_called_once()
+        args = mock_threading.Timer.call_args
+        assert args[0][0] == 0.5
+        mock_threading.Timer.return_value.start.assert_called_once()
+
+
+class TestModelStatusReflectsActive:
+    @patch("transcriber.app._active_model_size", "large-v3")
+    def test_model_status_returns_active_size(self, client):
+        response = client.get("/api/model-status")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["model_size"] == "large-v3"

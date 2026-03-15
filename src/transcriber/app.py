@@ -3,19 +3,20 @@
 import json
 import os
 import tempfile
+import threading
 from pathlib import Path
 
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi import FastAPI, Request, UploadFile, File, Form, HTTPException
 from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse
-from fastapi.staticfiles import StaticFiles
 
-from transcriber.transcribe import transcribe_audio, get_model_size, load_model
+from transcriber.transcribe import transcribe_audio, get_model_size, load_model, reload_model
 
 ALLOWED_EXTENSIONS = {".m4a", ".mp3", ".wav", ".ogg", ".flac", ".webm"}
 STATIC_DIR = Path(__file__).parent / "static"
 
-# Track model readiness
+# Track model state
 _model_ready = False
+_active_model_size: str | None = None
 
 
 def create_app() -> FastAPI:
@@ -33,19 +34,36 @@ def create_app() -> FastAPI:
 
     @app.get("/api/model-status")
     async def model_status():
-        global _model_ready
-        size = get_model_size()
+        global _model_ready, _active_model_size
+        size = _active_model_size or get_model_size()
         return {"model_size": size, "ready": _model_ready}
 
     @app.post("/api/load-model")
-    async def load_model_endpoint():
-        """Trigger model download/loading. Called by frontend on first visit."""
-        global _model_ready
+    async def load_model_endpoint(request: Request):
+        """Trigger model download/loading. Accepts optional JSON body with model_size."""
+        global _model_ready, _active_model_size
         try:
-            size = get_model_size()
-            load_model(size)
-            _model_ready = True
-            return {"status": "ready", "model_size": size}
+            # Parse optional JSON body
+            requested_size = None
+            body = await request.body()
+            if body:
+                data = json.loads(body)
+                requested_size = data.get("model_size")
+
+            if requested_size:
+                # Explicit model switch — reload
+                _model_ready = False
+                reload_model(requested_size)
+                _active_model_size = requested_size
+                _model_ready = True
+                return {"status": "ready", "model_size": requested_size}
+            else:
+                # Auto-detect (initial page load)
+                size = get_model_size()
+                load_model(size)
+                _active_model_size = size
+                _model_ready = True
+                return {"status": "ready", "model_size": size}
         except Exception as e:
             return JSONResponse(
                 status_code=500,
@@ -56,6 +74,7 @@ def create_app() -> FastAPI:
     async def transcribe(
         file: UploadFile = File(...),
         language: str = Form("hu"),
+        model_size: str = Form(None),
     ):
         # Validate file extension
         ext = Path(file.filename or "").suffix.lower()
@@ -74,7 +93,7 @@ def create_app() -> FastAPI:
 
             def generate():
                 try:
-                    for segment in transcribe_audio(tmp.name, language=language):
+                    for segment in transcribe_audio(tmp.name, language=language, model_size=model_size):
                         yield f"data: {json.dumps(segment, ensure_ascii=False)}\n\n"
                     yield f"data: {json.dumps({'done': True})}\n\n"
                 except Exception as e:
@@ -97,6 +116,12 @@ def create_app() -> FastAPI:
             if os.path.exists(tmp.name):
                 os.unlink(tmp.name)
             raise
+
+    @app.post("/api/shutdown")
+    async def shutdown():
+        """Gracefully shut down the server."""
+        threading.Timer(0.5, lambda: os._exit(0)).start()
+        return {"status": "shutting_down"}
 
     return app
 
@@ -127,7 +152,6 @@ def main():
     print(f"\n  Súgó Transcriber running at: {url}\n")
 
     # Open browser after a short delay
-    import threading
     threading.Timer(1.5, lambda: webbrowser.open(url)).start()
 
     app = create_app()
