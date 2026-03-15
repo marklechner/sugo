@@ -639,7 +639,9 @@ dropzone.addEventListener("dragover", e => {
 
 dropzone.addEventListener("dragleave", e => {
   e.preventDefault();
-  dropzone.classList.remove("dragover");
+  if (!dropzone.contains(e.relatedTarget)) {
+    dropzone.classList.remove("dragover");
+  }
 });
 
 dropzone.addEventListener("drop", e => {
@@ -806,7 +808,22 @@ async function copyResult() {
       btn.classList.remove("copied");
     }, 2000);
   } catch (e) {
-    // fallback: do nothing
+    // Fallback for non-HTTPS or restricted contexts
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+    const btn = document.getElementById("btnCopy");
+    btn.textContent = i18n[currentLang].copied;
+    btn.classList.add("copied");
+    setTimeout(() => {
+      btn.textContent = i18n[currentLang].copy_btn;
+      btn.classList.remove("copied");
+    }, 2000);
   }
 }
 
