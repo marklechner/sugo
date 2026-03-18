@@ -1038,17 +1038,22 @@ async function startTranscription() {
             return;
           }
           if (data.text != null) {
-            // Insert paragraph break if there's a significant pause
-            const isNewParagraph = paragraphGap > 0 && lastSegmentEnd !== null && data.start != null && (data.start - lastSegmentEnd) >= paragraphGap;
-            if (isNewParagraph) {
-              transcriptionText += "\n\n";
+            let separator = "";
+            if (showTimestamps) {
+              // Timestamps mode: each segment on its own line
+              if (lastSegmentEnd !== null) separator = "\n";
+            } else if (paragraphGap > 0 && lastSegmentEnd !== null && data.start != null) {
+              // Paragraph mode: double newline on significant pauses
+              if ((data.start - lastSegmentEnd) >= paragraphGap) separator = "\n\n";
+            }
+            if (separator) {
+              transcriptionText += separator;
               const cursor = streamOut.querySelector(".streaming-cursor");
-              streamOut.insertBefore(document.createTextNode("\n\n"), cursor);
+              streamOut.insertBefore(document.createTextNode(separator), cursor);
             }
             if (data.end != null) {
               lastSegmentEnd = data.end;
             }
-            // Optionally prepend timestamp
             let prefix = "";
             if (showTimestamps && data.start != null) {
               prefix = formatTimestamp(data.start);
