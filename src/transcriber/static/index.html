@@ -1038,13 +1038,16 @@ async function startTranscription() {
             return;
           }
           if (data.text != null) {
+            // Every segment starts on a new line
             let separator = "";
-            if (showTimestamps) {
-              // Timestamps mode: each segment on its own line
-              if (lastSegmentEnd !== null) separator = "\n";
-            } else if (paragraphGap > 0 && lastSegmentEnd !== null && data.start != null) {
-              // Paragraph mode: double newline on significant pauses
-              if ((data.start - lastSegmentEnd) >= paragraphGap) separator = "\n\n";
+            if (lastSegmentEnd !== null) {
+              const gap = (data.start != null) ? data.start - lastSegmentEnd : 0;
+              // Extra blank line (paragraph break) on long pauses
+              if (paragraphGap > 0 && gap >= paragraphGap) {
+                separator = "\n\n";
+              } else {
+                separator = "\n";
+              }
             }
             if (separator) {
               transcriptionText += separator;
