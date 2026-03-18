@@ -124,7 +124,7 @@ Open the gear icon to configure:
 | Setting | Options | Default |
 |---------|---------|---------|
 | Model size | Auto, Medium (faster), Large-v3 (more accurate) | Auto |
-| Paragraph pause | Off, 1s, 1.5s, 2s, 3s | 1.5s |
+| Paragraph pause | Off, 1s, 1.5s, 2s, 3s | Off |
 | Font size | Small, Medium, Large, Extra large | Medium |
 | Auto-copy | On/Off | Off |
 | Timestamps | On/Off | Off |

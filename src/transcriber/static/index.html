@@ -834,7 +834,7 @@ function setSetting(key, value) {
 }
 
 function getParagraphGap() {
-  return parseFloat(getSetting("paragraph_gap", "1.5"));
+  return parseFloat(getSetting("paragraph_gap", "0"));
 }
 
 function getFontSize() {
@@ -1189,7 +1189,7 @@ document.addEventListener("click", (e) => {
 
 // Restore saved settings
 modelSizeSelect.value = getSetting("model_size", "auto");
-paragraphGapSelect.value = getSetting("paragraph_gap", "1.5");
+paragraphGapSelect.value = getSetting("paragraph_gap", "0");
 fontSizeSelect.value = getSetting("font_size", "14");
 autoCopyCheck.checked = getAutoCopy();
 timestampsCheck.checked = getTimestamps();
