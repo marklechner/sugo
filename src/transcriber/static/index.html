@@ -142,6 +142,23 @@ main {
   color: #888;
 }
 
+.model-badge {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 12px;
+  color: #666;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 3px 12px;
+  letter-spacing: 0.3px;
+}
+
+.model-badge.loading {
+  color: #6366f1;
+  border-color: #3a3a6a;
+}
+
 /* State 0: Model loading */
 .state-loading {
   display: none;
@@ -618,6 +635,10 @@ main {
           <input type="checkbox" id="autoCopyCheck">
           <span data-i18n="auto_copy">Automatikus m&#225;sol&#225;s</span>
         </label>
+        <label class="settings-checkbox" style="margin-top:8px">
+          <input type="checkbox" id="timestampsCheck">
+          <span data-i18n="timestamps">Id&#337;b&#233;lyegek</span>
+        </label>
       </div>
     </div>
     <div class="whisper-lang">
@@ -660,6 +681,7 @@ main {
     <span class="mascot">&#128049;</span>
     <h1>S&#250;g&#243;</h1>
     <p class="subtitle" data-i18n="subtitle">Helyi hang&#225;t&#237;r&#243;</p>
+    <span class="model-badge loading" id="modelBadge" data-i18n="model_loading_short">...</span>
   </div>
 
   <!-- State 0: Model loading -->
@@ -747,7 +769,10 @@ const i18n = {
     font_large: "Nagy",
     font_xl: "Extra nagy",
     auto_copy: "Automatikus m\u00e1sol\u00e1s",
-    auto_copied: "M\u00e1solva a v\u00e1g\u00f3lapra!"
+    auto_copied: "M\u00e1solva a v\u00e1g\u00f3lapra!",
+    timestamps: "Id\u0151b\u00e9lyegek",
+    model_loading_short: "...",
+    model_badge: "Modell: {model}"
   },
   en: {
     subtitle: "Local audio transcriber",
@@ -785,7 +810,10 @@ const i18n = {
     font_large: "Large",
     font_xl: "Extra large",
     auto_copy: "Auto-copy to clipboard",
-    auto_copied: "Copied to clipboard!"
+    auto_copied: "Copied to clipboard!",
+    timestamps: "Show timestamps",
+    model_loading_short: "...",
+    model_badge: "Model: {model}"
   }
 };
 
@@ -815,6 +843,23 @@ function getFontSize() {
 
 function getAutoCopy() {
   return getSetting("auto_copy", "false") === "true";
+}
+
+function getTimestamps() {
+  return getSetting("timestamps", "false") === "true";
+}
+
+function formatTimestamp(seconds) {
+  const m = String(Math.floor(seconds / 60)).padStart(2, "0");
+  const s = String(Math.floor(seconds % 60)).padStart(2, "0");
+  return "[" + m + ":" + s + "] ";
+}
+
+function updateModelBadge(modelSize) {
+  const badge = document.getElementById("modelBadge");
+  const label = i18n[currentLang].model_badge.replace("{model}", modelSize);
+  badge.textContent = label;
+  badge.classList.remove("loading");
 }
 
 function setLang(lang) {
@@ -858,6 +903,7 @@ async function loadModel() {
     const res = await fetch("/api/load-model", fetchOpts);
     const data = await res.json();
     if (res.ok && data.status === "ready") {
+      if (data.model_size) updateModelBadge(data.model_size);
       setState("ready");
     } else {
       lastErrorContext = "model";
@@ -948,6 +994,7 @@ async function startTranscription() {
   }
 
   const paragraphGap = getParagraphGap();
+  const showTimestamps = getTimestamps();
 
   try {
     const res = await fetch("/api/transcribe", {
@@ -992,21 +1039,23 @@ async function startTranscription() {
           }
           if (data.text != null) {
             // Insert paragraph break if there's a significant pause
-            if (paragraphGap > 0 && lastSegmentEnd !== null && data.start != null) {
-              const gap = data.start - lastSegmentEnd;
-              if (gap >= paragraphGap) {
-                transcriptionText += "\n\n";
-                const cursor = streamOut.querySelector(".streaming-cursor");
-                streamOut.insertBefore(document.createTextNode("\n\n"), cursor);
-              }
+            const isNewParagraph = paragraphGap > 0 && lastSegmentEnd !== null && data.start != null && (data.start - lastSegmentEnd) >= paragraphGap;
+            if (isNewParagraph) {
+              transcriptionText += "\n\n";
+              const cursor = streamOut.querySelector(".streaming-cursor");
+              streamOut.insertBefore(document.createTextNode("\n\n"), cursor);
             }
             if (data.end != null) {
               lastSegmentEnd = data.end;
             }
-            transcriptionText += data.text;
+            // Optionally prepend timestamp
+            let prefix = "";
+            if (showTimestamps && data.start != null) {
+              prefix = formatTimestamp(data.start);
+            }
+            transcriptionText += prefix + data.text;
             const cursor = streamOut.querySelector(".streaming-cursor");
-            const textNode = document.createTextNode(data.text);
-            streamOut.insertBefore(textNode, cursor);
+            streamOut.insertBefore(document.createTextNode(prefix + data.text), cursor);
             streamOut.scrollTop = streamOut.scrollHeight;
           }
         } catch (parseErr) {
@@ -1114,6 +1163,7 @@ const modelSizeSelect = document.getElementById("modelSizeSelect");
 const paragraphGapSelect = document.getElementById("paragraphGapSelect");
 const fontSizeSelect = document.getElementById("fontSizeSelect");
 const autoCopyCheck = document.getElementById("autoCopyCheck");
+const timestampsCheck = document.getElementById("timestampsCheck");
 const quitBtnEl = document.getElementById("quitBtn");
 
 // Toggle panel
@@ -1134,19 +1184,25 @@ modelSizeSelect.value = getSetting("model_size", "auto");
 paragraphGapSelect.value = getSetting("paragraph_gap", "1.5");
 fontSizeSelect.value = getSetting("font_size", "14");
 autoCopyCheck.checked = getAutoCopy();
+timestampsCheck.checked = getTimestamps();
 
 // Model size change
 modelSizeSelect.addEventListener("change", async () => {
   const value = modelSizeSelect.value;
   setSetting("model_size", value);
   settingsBtn.textContent = "\u231B";
+  const badge = document.getElementById("modelBadge");
+  badge.textContent = "...";
+  badge.classList.add("loading");
   try {
     const fetchOpts = { method: "POST" };
     if (value !== "auto") {
       fetchOpts.headers = { "Content-Type": "application/json" };
       fetchOpts.body = JSON.stringify({ model_size: value });
     }
-    await fetch("/api/load-model", fetchOpts);
+    const res = await fetch("/api/load-model", fetchOpts);
+    const data = await res.json();
+    if (data.model_size) updateModelBadge(data.model_size);
   } catch (e) {
     // ignore
   }
@@ -1167,6 +1223,11 @@ fontSizeSelect.addEventListener("change", () => {
 // Auto-copy change
 autoCopyCheck.addEventListener("change", () => {
   setSetting("auto_copy", autoCopyCheck.checked ? "true" : "false");
+});
+
+// Timestamps change
+timestampsCheck.addEventListener("change", () => {
+  setSetting("timestamps", timestampsCheck.checked ? "true" : "false");
 });
 
 // Quit handler

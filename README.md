@@ -10,6 +10,17 @@ Record on your iPhone, AirDrop to your Mac, and transcribe instantly — no inte
 
 **Prerequisites:** macOS with Apple Silicon (M1/M2/M3/M4). No other setup needed.
 
+### System Requirements by Model
+
+| Model | RAM | Disk | Speed | Accuracy |
+|-------|-----|------|-------|----------|
+| **Medium** | 8 GB+ | ~1.5 GB | ~2-4x realtime | Good |
+| **Large-v3** | 16 GB+ | ~3 GB | ~1-2x realtime | Best |
+
+Sugo auto-selects the best model for your machine. Macs with 16 GB+ RAM get Large-v3 by default; 8 GB Macs get Medium. You can override this in Settings.
+
+> **Speed note:** "2x realtime" means a 10-minute recording takes ~5 minutes to transcribe. Performance varies by Mac model.
+
 ```bash
 git clone https://github.com/yourusername/transcriber.git
 cd transcriber
@@ -96,12 +107,14 @@ Voice Memos -> AirDrop -> Sugo -> Copy -> ChatGPT
 ## Features
 
 - **Smart paragraphs** — automatically segments text based on speech pauses
-- **Configurable settings** — paragraph gap, font size, auto-copy to clipboard
+- **Optional timestamps** — prepend `[MM:SS]` markers to each segment
+- **Active model indicator** — always shows which Whisper model is loaded
+- **Configurable settings** — paragraph gap, font size, auto-copy, timestamps
 - Hungarian and English UI
 - Transcription in 99+ languages
 - Dark theme
 - Drag-and-drop support
-- One-click quit button
+- One-click quit button (top-right, always visible)
 - Supported formats: `.m4a`, `.mp3`, `.wav`, `.ogg`, `.flac`, `.webm`
 
 ### Settings
@@ -114,6 +127,7 @@ Open the gear icon to configure:
 | Paragraph pause | Off, 1s, 1.5s, 2s, 3s | 1.5s |
 | Font size | Small, Medium, Large, Extra large | Medium |
 | Auto-copy | On/Off | Off |
+| Timestamps | On/Off | Off |
 
 All settings are saved in your browser and persist between sessions.
 

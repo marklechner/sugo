@@ -4,7 +4,15 @@ import json
 import os
 import tempfile
 import threading
+import warnings
 from pathlib import Path
+
+# Suppress semaphore leak warning from faster-whisper/ctranslate2 on shutdown
+warnings.filterwarnings(
+    "ignore",
+    message="resource_tracker: There appear to be",
+    category=UserWarning,
+)
 
 from fastapi import FastAPI, Request, UploadFile, File, Form, HTTPException
 from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse
