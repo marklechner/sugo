@@ -33,6 +33,18 @@ header {
   align-items: center;
 }
 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .lang-toggle {
   display: flex;
   background: #1a1a1a;
@@ -460,7 +472,7 @@ main {
   border: 1px solid #2a2a2a;
   border-radius: 12px;
   padding: 16px;
-  min-width: 240px;
+  min-width: 260px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.4);
   z-index: 100;
 }
@@ -473,6 +485,10 @@ main {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.settings-group + .settings-group {
+  margin-top: 14px;
 }
 
 .settings-label {
@@ -506,27 +522,54 @@ main {
   border-color: #6366f1;
 }
 
+.settings-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.settings-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #6366f1;
+  cursor: pointer;
+}
+
+.settings-checkbox span {
+  font-size: 13px;
+  color: #ccc;
+}
+
 .settings-divider {
   height: 1px;
   background: #2a2a2a;
   margin: 12px 0;
 }
 
+/* Quit button — top-right, always visible */
 .quit-btn {
   background: transparent;
-  border: none;
+  border: 1px solid #3a2020;
+  border-radius: 8px;
   color: #ef4444;
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 600;
   font-family: inherit;
   cursor: pointer;
-  padding: 4px 0;
-  text-align: left;
-  width: 100%;
-  transition: opacity 0.2s;
+  padding: 6px 14px;
+  transition: all 0.2s;
+  white-space: nowrap;
 }
 
 .quit-btn:hover {
-  opacity: 0.8;
+  background: #1a0a0a;
+  border-color: #ef4444;
+}
+
+.quit-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 /* Focus */
@@ -539,49 +582,76 @@ main {
 <body>
 
 <header>
-  <div class="settings-wrapper">
-    <button class="settings-btn" id="settingsBtn" title="Settings" aria-label="Settings">⚙️</button>
-    <div class="settings-panel" id="settingsPanel">
-      <div class="settings-group">
-        <label class="settings-label" data-i18n="model_size_label">Modell méret</label>
-        <select id="modelSizeSelect" class="settings-select">
-          <option value="auto" data-i18n="model_auto">Auto (ajánlott)</option>
-          <option value="medium" data-i18n="model_medium">Medium — gyorsabb</option>
-          <option value="large-v3" data-i18n="model_large">Large-v3 — pontosabb</option>
-        </select>
+  <div class="header-left">
+    <div class="settings-wrapper">
+      <button class="settings-btn" id="settingsBtn" title="Settings" aria-label="Settings">&#9881;&#65039;</button>
+      <div class="settings-panel" id="settingsPanel">
+        <div class="settings-group">
+          <label class="settings-label" data-i18n="model_size_label">Modell m&#233;ret</label>
+          <select id="modelSizeSelect" class="settings-select">
+            <option value="auto" data-i18n="model_auto">Auto (aj&#225;nlott)</option>
+            <option value="medium" data-i18n="model_medium">Medium &#8212; gyorsabb</option>
+            <option value="large-v3" data-i18n="model_large">Large-v3 &#8212; pontosabb</option>
+          </select>
+        </div>
+        <div class="settings-group">
+          <label class="settings-label" data-i18n="paragraph_gap_label">Bekezd&#233;s sz&#252;net</label>
+          <select id="paragraphGapSelect" class="settings-select">
+            <option value="0" data-i18n="paragraph_off">Ki</option>
+            <option value="1" data-i18n="paragraph_1s">1 mp</option>
+            <option value="1.5" data-i18n="paragraph_1_5s">1.5 mp (alap&#233;rtelmezett)</option>
+            <option value="2" data-i18n="paragraph_2s">2 mp</option>
+            <option value="3" data-i18n="paragraph_3s">3 mp</option>
+          </select>
+        </div>
+        <div class="settings-group">
+          <label class="settings-label" data-i18n="font_size_label">Bet&#369;m&#233;ret</label>
+          <select id="fontSizeSelect" class="settings-select">
+            <option value="13" data-i18n="font_small">Kicsi</option>
+            <option value="14" data-i18n="font_medium">K&#246;zepes (alap&#233;rtelmezett)</option>
+            <option value="16" data-i18n="font_large">Nagy</option>
+            <option value="18" data-i18n="font_xl">Extra nagy</option>
+          </select>
+        </div>
+        <div class="settings-divider"></div>
+        <label class="settings-checkbox">
+          <input type="checkbox" id="autoCopyCheck">
+          <span data-i18n="auto_copy">Automatikus m&#225;sol&#225;s</span>
+        </label>
       </div>
-      <div class="settings-divider"></div>
-      <button class="quit-btn" id="quitBtn" data-i18n="quit_btn">Kilépés</button>
+    </div>
+    <div class="whisper-lang">
+      <label data-i18n="whisper_lang">Besz&#233;d nyelve</label>
+      <select id="whisperLang">
+        <option value="hu">Magyar</option>
+        <option value="en">English</option>
+        <option value="de">Deutsch</option>
+        <option value="fr">Fran&#231;ais</option>
+        <option value="es">Espa&#241;ol</option>
+        <option value="it">Italiano</option>
+        <option value="ro">Rom&#226;n&#259;</option>
+        <option value="sk">Sloven&#269;ina</option>
+        <option value="hr">Hrvatski</option>
+        <option value="sr">Srpski</option>
+        <option value="uk">Ukra&#239;nska</option>
+        <option value="pl">Polski</option>
+        <option value="cs">&#268;e&#353;tina</option>
+        <option value="nl">Nederlands</option>
+        <option value="pt">Portugu&#234;s</option>
+        <option value="ru">Russkiy</option>
+        <option value="zh">Zh&#333;ngw&#233;n</option>
+        <option value="ja">Nihongo</option>
+        <option value="ko">Hangugeo</option>
+        <option value="ar">Arabiyya</option>
+      </select>
     </div>
   </div>
-  <div class="whisper-lang">
-    <label data-i18n="whisper_lang">Beszed nyelve</label>
-    <select id="whisperLang">
-      <option value="hu">Magyar</option>
-      <option value="en">English</option>
-      <option value="de">Deutsch</option>
-      <option value="fr">Francais</option>
-      <option value="es">Espanol</option>
-      <option value="it">Italiano</option>
-      <option value="ro">Romana</option>
-      <option value="sk">Slovencina</option>
-      <option value="hr">Hrvatski</option>
-      <option value="sr">Srpski</option>
-      <option value="uk">Ukrainska</option>
-      <option value="pl">Polski</option>
-      <option value="cs">Cestina</option>
-      <option value="nl">Nederlands</option>
-      <option value="pt">Portugues</option>
-      <option value="ru">Russkiy</option>
-      <option value="zh">Zhongwen</option>
-      <option value="ja">Nihongo</option>
-      <option value="ko">Hangugeo</option>
-      <option value="ar">Arabiyya</option>
-    </select>
-  </div>
-  <div class="lang-toggle">
-    <button id="btnHU" class="active" onclick="setLang('hu')">HU</button>
-    <button id="btnEN" onclick="setLang('en')">EN</button>
+  <div class="header-right">
+    <div class="lang-toggle">
+      <button id="btnHU" class="active" onclick="setLang('hu')">HU</button>
+      <button id="btnEN" onclick="setLang('en')">EN</button>
+    </div>
+    <button class="quit-btn" id="quitBtn" data-i18n="quit_btn">Kil&#233;p&#233;s</button>
   </div>
 </header>
 
@@ -589,35 +659,35 @@ main {
   <div class="hero">
     <span class="mascot">&#128049;</span>
     <h1>S&#250;g&#243;</h1>
-    <p class="subtitle" data-i18n="subtitle">Helyi hangativo</p>
+    <p class="subtitle" data-i18n="subtitle">Helyi hang&#225;t&#237;r&#243;</p>
   </div>
 
   <!-- State 0: Model loading -->
   <div class="state-loading" id="stateLoading">
     <div class="spinner"></div>
-    <p data-i18n="model_loading">A modell letoltese folyamatban... (ez csak egyszer szukseges)</p>
+    <p data-i18n="model_loading">A modell let&#246;lt&#233;se folyamatban... (ez csak egyszer sz&#252;ks&#233;ges)</p>
   </div>
 
   <!-- State 1: Ready / Dropzone -->
   <div class="state-ready" id="stateReady">
     <div class="dropzone" id="dropzone">
       <span class="dropzone-icon">&#127911;</span>
-      <p class="dropzone-text" data-i18n="dropzone_text">Huzd ide a hangfajlt vagy kattints</p>
+      <p class="dropzone-text" data-i18n="dropzone_text">H&#250;zd ide a hangf&#225;jlt vagy kattints</p>
       <p class="dropzone-hint">.m4a, .mp3, .wav, .ogg, .flac, .webm</p>
     </div>
     <input type="file" class="file-input" id="fileInput" accept=".m4a,.mp3,.wav,.ogg,.flac,.webm">
     <div class="file-selected" id="fileSelected">
       <div class="file-name" id="fileName"></div>
       <br>
-      <button class="btn-primary" id="btnTranscribe" data-i18n="transcribe_btn" onclick="startTranscription()">Atiras</button>
+      <button class="btn-primary" id="btnTranscribe" data-i18n="transcribe_btn" onclick="startTranscription()">&#193;t&#237;r&#225;s</button>
     </div>
   </div>
 
   <!-- State 2: Processing -->
   <div class="state-processing" id="stateProcessing">
     <div class="spinner"></div>
-    <p class="processing-status" data-i18n="processing">Atiras folyamatban...</p>
-    <div class="elapsed"><span data-i18n="elapsed">Eltelt ido</span>: <span id="elapsedTime">00:00</span></div>
+    <p class="processing-status" data-i18n="processing">&#193;t&#237;r&#225;s folyamatban...</p>
+    <div class="elapsed"><span data-i18n="elapsed">Eltelt id&#337;</span>: <span id="elapsedTime">00:00</span></div>
     <div class="streaming-output" id="streamingOutput"><span class="streaming-cursor"></span></div>
   </div>
 
@@ -625,8 +695,8 @@ main {
   <div class="state-complete" id="stateComplete">
     <div class="result-output" id="resultOutput"></div>
     <div class="result-actions">
-      <button class="btn-secondary btn-copy" id="btnCopy" data-i18n="copy_btn" onclick="copyResult()">Masolas</button>
-      <button class="btn-primary" id="btnNew" data-i18n="new_btn" onclick="resetToReady()">Uj atiras</button>
+      <button class="btn-secondary btn-copy" id="btnCopy" data-i18n="copy_btn" onclick="copyResult()">M&#225;sol&#225;s</button>
+      <button class="btn-primary" id="btnNew" data-i18n="new_btn" onclick="resetToReady()">&#218;j &#225;t&#237;r&#225;s</button>
     </div>
   </div>
 
@@ -634,7 +704,7 @@ main {
   <div class="state-error" id="stateError">
     <span class="error-icon">&#9888;&#65039;</span>
     <p class="error-message" id="errorMessage"></p>
-    <button class="btn-retry" id="btnRetry" data-i18n="retry_btn" onclick="retry()">Probald ujra</button>
+    <button class="btn-retry" id="btnRetry" data-i18n="retry_btn" onclick="retry()">Pr&#243;b&#225;ld &#250;jra</button>
   </div>
 </main>
 
@@ -664,7 +734,20 @@ const i18n = {
     model_switching: "Modell v\u00e1lt\u00e1s...",
     quit_btn: "Kil\u00e9p\u00e9s",
     shutting_down: "S\u00fag\u00f3 le\u00e1ll...",
-    safe_to_close: "Bez\u00e1rhatod ezt az ablakot."
+    safe_to_close: "Bez\u00e1rhatod ezt az ablakot.",
+    paragraph_gap_label: "Bekezd\u00e9s sz\u00fcnet",
+    paragraph_off: "Ki",
+    paragraph_1s: "1 mp",
+    paragraph_1_5s: "1.5 mp (alap\u00e9rtelmezett)",
+    paragraph_2s: "2 mp",
+    paragraph_3s: "3 mp",
+    font_size_label: "Bet\u0171m\u00e9ret",
+    font_small: "Kicsi",
+    font_medium: "K\u00f6zepes (alap\u00e9rtelmezett)",
+    font_large: "Nagy",
+    font_xl: "Extra nagy",
+    auto_copy: "Automatikus m\u00e1sol\u00e1s",
+    auto_copied: "M\u00e1solva a v\u00e1g\u00f3lapra!"
   },
   en: {
     subtitle: "Local audio transcriber",
@@ -689,7 +772,20 @@ const i18n = {
     model_switching: "Switching model...",
     quit_btn: "Quit",
     shutting_down: "S\u00fag\u00f3 shutting down...",
-    safe_to_close: "You can close this window."
+    safe_to_close: "You can close this window.",
+    paragraph_gap_label: "Paragraph pause",
+    paragraph_off: "Off",
+    paragraph_1s: "1 sec",
+    paragraph_1_5s: "1.5 sec (default)",
+    paragraph_2s: "2 sec",
+    paragraph_3s: "3 sec",
+    font_size_label: "Font size",
+    font_small: "Small",
+    font_medium: "Medium (default)",
+    font_large: "Large",
+    font_xl: "Extra large",
+    auto_copy: "Auto-copy to clipboard",
+    auto_copied: "Copied to clipboard!"
   }
 };
 
@@ -699,10 +795,31 @@ let selectedFile = null;
 let elapsedInterval = null;
 let transcriptionText = "";
 let lastErrorContext = "generic"; // "generic" | "model" | "format"
+let lastSegmentEnd = null; // track end time for paragraph detection
+
+function getSetting(key, fallback) {
+  return localStorage.getItem("sugo_" + key) || fallback;
+}
+
+function setSetting(key, value) {
+  localStorage.setItem("sugo_" + key, value);
+}
+
+function getParagraphGap() {
+  return parseFloat(getSetting("paragraph_gap", "1.5"));
+}
+
+function getFontSize() {
+  return parseInt(getSetting("font_size", "14"), 10);
+}
+
+function getAutoCopy() {
+  return getSetting("auto_copy", "false") === "true";
+}
 
 function setLang(lang) {
   currentLang = lang;
-  localStorage.setItem("sugo_lang", lang);
+  setSetting("lang", lang);
   document.querySelectorAll("[data-i18n]").forEach(el => {
     const key = el.getAttribute("data-i18n");
     if (i18n[lang][key]) {
@@ -711,7 +828,6 @@ function setLang(lang) {
   });
   document.getElementById("btnHU").classList.toggle("active", lang === "hu");
   document.getElementById("btnEN").classList.toggle("active", lang === "en");
-  // Re-apply elapsed time label if processing
   if (currentState === "processing") {
     updateElapsedDisplay();
   }
@@ -727,14 +843,13 @@ function setState(state) {
   document.getElementById("stateError").classList.toggle("visible", state === "error");
   const quitBtn = document.getElementById("quitBtn");
   quitBtn.disabled = (state === "processing");
-  quitBtn.style.opacity = (state === "processing") ? "0.3" : "1";
 }
 
 /* ── Model preloading ────────────────────────────── */
 async function loadModel() {
   setState("loading");
   try {
-    const savedSize = localStorage.getItem("sugo_model_size") || "auto";
+    const savedSize = getSetting("model_size", "auto");
     const fetchOpts = { method: "POST" };
     if (savedSize !== "auto") {
       fetchOpts.headers = { "Content-Type": "application/json" };
@@ -817,6 +932,7 @@ async function startTranscription() {
   if (!selectedFile) return;
 
   transcriptionText = "";
+  lastSegmentEnd = null;
   const streamOut = document.getElementById("streamingOutput");
   streamOut.innerHTML = '<span class="streaming-cursor"></span>';
 
@@ -826,10 +942,12 @@ async function startTranscription() {
   const formData = new FormData();
   formData.append("file", selectedFile);
   formData.append("language", document.getElementById("whisperLang").value);
-  const savedSize = localStorage.getItem("sugo_model_size") || "auto";
+  const savedSize = getSetting("model_size", "auto");
   if (savedSize !== "auto") {
     formData.append("model_size", savedSize);
   }
+
+  const paragraphGap = getParagraphGap();
 
   try {
     const res = await fetch("/api/transcribe", {
@@ -854,7 +972,7 @@ async function startTranscription() {
 
       buffer += decoder.decode(value, { stream: true });
       const lines = buffer.split("\n");
-      buffer = lines.pop(); // keep incomplete line in buffer
+      buffer = lines.pop();
 
       for (const line of lines) {
         if (!line.startsWith("data: ")) continue;
@@ -873,8 +991,19 @@ async function startTranscription() {
             return;
           }
           if (data.text != null) {
+            // Insert paragraph break if there's a significant pause
+            if (paragraphGap > 0 && lastSegmentEnd !== null && data.start != null) {
+              const gap = data.start - lastSegmentEnd;
+              if (gap >= paragraphGap) {
+                transcriptionText += "\n\n";
+                const cursor = streamOut.querySelector(".streaming-cursor");
+                streamOut.insertBefore(document.createTextNode("\n\n"), cursor);
+              }
+            }
+            if (data.end != null) {
+              lastSegmentEnd = data.end;
+            }
             transcriptionText += data.text;
-            // Update streaming output
             const cursor = streamOut.querySelector(".streaming-cursor");
             const textNode = document.createTextNode(data.text);
             streamOut.insertBefore(textNode, cursor);
@@ -886,7 +1015,6 @@ async function startTranscription() {
       }
     }
 
-    // If we exit the loop without done signal, still finish
     if (transcriptionText.length > 0) {
       stopTimer();
       finishTranscription();
@@ -901,12 +1029,18 @@ async function startTranscription() {
 function finishTranscription() {
   document.getElementById("resultOutput").textContent = transcriptionText.trim();
   setState("complete");
+
+  // Auto-copy if enabled
+  if (getAutoCopy()) {
+    copyResult(true);
+  }
 }
 
 function resetToReady() {
   selectedFile = null;
   fileInput.value = "";
   transcriptionText = "";
+  lastSegmentEnd = null;
   document.getElementById("fileSelected").classList.remove("visible");
   document.getElementById("streamingOutput").innerHTML = '<span class="streaming-cursor"></span>';
   document.getElementById("resultOutput").textContent = "";
@@ -941,19 +1075,11 @@ function stopTimer() {
 }
 
 /* ── Copy ────────────────────────────────────────── */
-async function copyResult() {
+async function copyResult(isAuto) {
   const text = document.getElementById("resultOutput").textContent;
   try {
     await navigator.clipboard.writeText(text);
-    const btn = document.getElementById("btnCopy");
-    btn.textContent = i18n[currentLang].copied;
-    btn.classList.add("copied");
-    setTimeout(() => {
-      btn.textContent = i18n[currentLang].copy_btn;
-      btn.classList.remove("copied");
-    }, 2000);
   } catch (e) {
-    // Fallback for non-HTTPS or restricted contexts
     const ta = document.createElement("textarea");
     ta.value = text;
     ta.style.position = "fixed";
@@ -962,20 +1088,32 @@ async function copyResult() {
     ta.select();
     document.execCommand("copy");
     document.body.removeChild(ta);
-    const btn = document.getElementById("btnCopy");
-    btn.textContent = i18n[currentLang].copied;
-    btn.classList.add("copied");
-    setTimeout(() => {
-      btn.textContent = i18n[currentLang].copy_btn;
-      btn.classList.remove("copied");
-    }, 2000);
   }
+  const btn = document.getElementById("btnCopy");
+  const label = isAuto ? i18n[currentLang].auto_copied : i18n[currentLang].copied;
+  btn.textContent = label;
+  btn.classList.add("copied");
+  setTimeout(() => {
+    btn.textContent = i18n[currentLang].copy_btn;
+    btn.classList.remove("copied");
+  }, 2000);
+}
+
+/* ── Font size ───────────────────────────────────── */
+function applyFontSize() {
+  const size = getFontSize() + "px";
+  document.querySelectorAll(".streaming-output, .result-output").forEach(el => {
+    el.style.fontSize = size;
+  });
 }
 
 /* ── Settings panel ──────────────────────────────── */
 const settingsBtn = document.getElementById("settingsBtn");
 const settingsPanel = document.getElementById("settingsPanel");
 const modelSizeSelect = document.getElementById("modelSizeSelect");
+const paragraphGapSelect = document.getElementById("paragraphGapSelect");
+const fontSizeSelect = document.getElementById("fontSizeSelect");
+const autoCopyCheck = document.getElementById("autoCopyCheck");
 const quitBtnEl = document.getElementById("quitBtn");
 
 // Toggle panel
@@ -991,14 +1129,16 @@ document.addEventListener("click", (e) => {
   }
 });
 
-// Restore saved model size
-const savedModelSize = localStorage.getItem("sugo_model_size") || "auto";
-modelSizeSelect.value = savedModelSize;
+// Restore saved settings
+modelSizeSelect.value = getSetting("model_size", "auto");
+paragraphGapSelect.value = getSetting("paragraph_gap", "1.5");
+fontSizeSelect.value = getSetting("font_size", "14");
+autoCopyCheck.checked = getAutoCopy();
 
 // Model size change
 modelSizeSelect.addEventListener("change", async () => {
   const value = modelSizeSelect.value;
-  localStorage.setItem("sugo_model_size", value);
+  setSetting("model_size", value);
   settingsBtn.textContent = "\u231B";
   try {
     const fetchOpts = { method: "POST" };
@@ -1013,23 +1153,40 @@ modelSizeSelect.addEventListener("change", async () => {
   settingsBtn.textContent = "\u2699\uFE0F";
 });
 
+// Paragraph gap change
+paragraphGapSelect.addEventListener("change", () => {
+  setSetting("paragraph_gap", paragraphGapSelect.value);
+});
+
+// Font size change
+fontSizeSelect.addEventListener("change", () => {
+  setSetting("font_size", fontSizeSelect.value);
+  applyFontSize();
+});
+
+// Auto-copy change
+autoCopyCheck.addEventListener("change", () => {
+  setSetting("auto_copy", autoCopyCheck.checked ? "true" : "false");
+});
+
 // Quit handler
 quitBtnEl.addEventListener("click", async () => {
   settingsPanel.classList.remove("open");
   const mainEl = document.querySelector("main");
-  mainEl.innerHTML = '<div style="text-align:center;padding:64px 0;"><p style="font-size:18px;color:#e0e0e0;" data-i18n="shutting_down">' + i18n[currentLang].shutting_down + '</p></div>';
+  mainEl.innerHTML = '<div style="text-align:center;padding:64px 0;"><p style="font-size:18px;color:#e0e0e0;">' + i18n[currentLang].shutting_down + '</p></div>';
   try {
     await fetch("/api/shutdown", { method: "POST" });
   } catch (e) {
     // expected — server shuts down
   }
   setTimeout(() => {
-    mainEl.innerHTML = '<div style="text-align:center;padding:64px 0;"><p style="font-size:18px;color:#888;" data-i18n="safe_to_close">' + i18n[currentLang].safe_to_close + '</p></div>';
+    mainEl.innerHTML = '<div style="text-align:center;padding:64px 0;"><p style="font-size:18px;color:#888;">' + i18n[currentLang].safe_to_close + '</p></div>';
   }, 1000);
 });
 
 /* ── Init ────────────────────────────────────────── */
 setLang(currentLang);
+applyFontSize();
 loadModel();
 </script>
 </body>
