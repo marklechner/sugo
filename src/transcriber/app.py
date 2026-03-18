@@ -4,15 +4,12 @@ import json
 import os
 import tempfile
 import threading
-import warnings
 from pathlib import Path
 
-# Suppress semaphore leak warning from faster-whisper/ctranslate2 on shutdown
-warnings.filterwarnings(
-    "ignore",
-    message="resource_tracker: There appear to be",
-    category=UserWarning,
-)
+# Suppress semaphore leak warning from faster-whisper/ctranslate2 on shutdown.
+# The resource tracker is a child process that warns about leaked semaphores
+# when ctranslate2 doesn't clean up. This is harmless and unavoidable.
+os.environ["PYTHONWARNINGS"] = "ignore::UserWarning:multiprocessing.resource_tracker"
 
 from fastapi import FastAPI, Request, UploadFile, File, Form, HTTPException
 from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse

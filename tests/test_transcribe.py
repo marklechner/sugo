@@ -72,7 +72,7 @@ class TestTranscribeAudio:
         assert segments[0]["text"] == "Helló világ"
         assert segments[0]["start"] == 0.0
         assert segments[0]["end"] == 2.5
-        assert segments[1]["text"] == " ez egy teszt"
+        assert segments[1]["text"] == "ez egy teszt"
         mock_model.transcribe.assert_called_once_with(
             "/fake/path.m4a", language="hu", beam_size=5
         )

@@ -86,7 +86,7 @@ def transcribe_audio(
     first = True
     for segment in segments:
         result = {
-            "text": segment.text,
+            "text": segment.text.strip(),
             "start": segment.start,
             "end": segment.end,
         }
